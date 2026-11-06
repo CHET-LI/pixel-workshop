@@ -1,0 +1,13 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Node / Python
+node_modules/
+__pycache__/
+*.pyc
+
+# logs & local junk
+*.log
+_backup_v1.*

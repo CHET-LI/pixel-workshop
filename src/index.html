@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>像素工坊 · AI 像素图整理与像素编辑</title>
+<style>{{CSS}}</style>
+</head>
+<body>
+<header id="topbar">
+  <div class="brand"><span class="logo"></span>像素工坊</div>
+  <nav id="tabs">
+    <button data-tab="convert" class="on">① 转换</button>
+    <button data-tab="edit">② 编辑</button>
+    <button data-tab="batch">③ 批量</button>
+  </nav>
+  <div class="spacer"></div>
+  <button id="btnOpen" class="primary">打开图片</button>
+  <button id="btnSample">载入示例</button>
+  <button id="btnExport">导出…</button>
+  <button id="btnHelp">帮助</button>
+  <input type="file" id="fileOpen" accept="image/*,.json,application/json" hidden>
+</header>
+
+<!-- ============================ 转换 ============================ -->
+<section id="view-convert" class="view on">
+  <aside class="panel left" id="convPanel">
+    <details open><summary>源图</summary>
+      <div id="dropZone" class="drop">拖入图片 / 点击打开 / Ctrl+V 粘贴（.pxd.json / .pxw.json 直接进编辑器）</div>
+      <div class="info" id="srcInfo">尚未载入图片</div>
+    </details>
+    <details open><summary>模板</summary>
+      <div class="row"><select id="tplSel" data-noconv="1" style="flex:1"><option value="">— 选择模板 —</option></select></div>
+      <label class="row chk" style="flex-wrap:nowrap" title="勾选后：导入新图片、批量处理都只用这个模板，不再按图片自动改设置"><input type="checkbox" id="tplLock" data-noconv="1"><span style="color:inherit;white-space:normal">固定模板（新图片、批量都只用它）</span></label>
+      <div class="row btns">
+        <button id="btnTplSave" class="accent">保存为模板</button>
+        <button id="btnTplDel">删除</button>
+        <button id="btnTplExport" title="把全部模板存成 .json 文件备份，换电脑或换浏览器时导入">导出</button>
+        <button id="btnTplImport">导入</button>
+      </div>
+      <div class="info" id="tplInfo"></div>
+      <input type="file" id="fileTpl" accept=".json,application/json" hidden>
+    </details>
+    <details open><summary>像素网格</summary>
+      <div class="row seg" id="modeSeg">
+        <label><input type="radio" name="mode" value="auto" checked>自动识别</label>
+        <label><input type="radio" name="mode" value="size">固定块大小</label>
+        <label><input type="radio" name="mode" value="width">目标宽度</label>
+      </div>
+      <div class="info" id="gridInfo">—</div>
+      <label class="row chk" data-mode="auto"><input type="checkbox" id="o_snap" checked>边界吸附（跟随 AI 图的网格漂移）</label>
+      <div class="row" data-mode="size"><span>块大小</span><input type="number" id="o_size" min="1" max="128" step="0.05" value="8"><span>偏移</span><input type="number" id="o_offX" step="0.5" value="0"><input type="number" id="o_offY" step="0.5" value="0"></div>
+      <div class="row" data-mode="width"><span>目标宽度</span><input type="number" id="o_width" min="4" max="1024" value="128"><span>px</span></div>
+      <div class="row"><span>锐化</span><input type="range" id="o_sharpen" min="0" max="150" value="0"><output for="o_sharpen"></output></div>
+      <button id="btnBlurPreset" class="wide" title="房子、场景等被缩放过、边缘发糊的 AI 图">模糊大图预设（房子 / 场景）</button>
+      <button id="btnPalPreset" class="wide" title="不重新分块，每个原图像素保留；只把颜色统一到色板。细节全保留，尺寸不变，适合想保留原图观感的场景图">只统一色板（原尺寸，保留全部细节）</button>
+      <div class="row"><span>取色</span><select id="o_sample"><option value="dominant">主色（清晰 AI 像素图）</option><option value="detail">细线保护（模糊大图推荐）</option><option value="center">中心点</option><option value="average">平均（会混色）</option></select></div>
+    </details>
+    <details open><summary>背景</summary>
+      <label class="row chk"><input type="checkbox" id="o_bgAuto" checked>自动去除连通背景（不误伤内部同色）</label>
+      <div class="row"><span>容差</span><input type="range" id="o_bgTol" min="1" max="30" value="8"><output for="o_bgTol"></output></div>
+    </details>
+    <details open><summary>调色板</summary>
+      <div class="row seg">
+        <label><input type="radio" name="pmode" value="auto" checked>自动提取</label>
+        <label><input type="radio" name="pmode" value="custom">锁定色板</label>
+      </div>
+      <div data-pmode="auto">
+        <div class="row"><span>颜色数</span><input type="range" id="o_colors" min="2" max="64" value="16"><output for="o_colors"></output></div>
+        <label class="row chk"><input type="checkbox" id="o_realColors" checked>取真实色（不取平均，颜色不发灰）</label>
+        <div class="row" title="越高越照顾面积小但醒目的颜色（花、旗帜、灯），避免被大面积的墙和屋顶挤掉"><span>小面积色保留</span><input type="range" id="o_colorBalance" min="0" max="100" value="30"><output for="o_colorBalance"></output></div>
+        <div class="row"><span>必保色</span><span class="muted small">打开上方「吸色」后点原图加入，点色块移除</span></div>
+        <div class="swatches" id="pinnedPal"></div>
+        <button id="btnLockPal" class="wide">把当前结果色板锁定（批量统一用）</button>
+      </div>
+      <div data-pmode="custom">
+        <div class="swatches" id="customPal"></div>
+        <div class="row"><select id="presetSel"><option value="">— 预设色板 —</option></select></div>
+        <div class="row btns">
+          <button id="btnPalImport">导入 .gpl/.pal/.hex</button>
+          <button id="btnPalRef">从参考图提取</button>
+        </div>
+        <div class="row btns">
+          <input type="color" id="palAddColor" value="#8a5a3c"><button id="btnPalAdd">添加</button>
+          <button id="btnPalPaste">粘贴色值</button><button id="btnPalClear">清空</button>
+        </div>
+        <div class="hint">点色块删除；参考图可以是你手工调过色的样图，工具只取它的颜色。</div>
+        <input type="file" id="filePal" accept=".gpl,.pal,.hex,.txt,image/*" hidden>
+        <input type="file" id="fileRef" accept="image/*" hidden>
+      </div>
+      <div class="row"><span>抖动</span><select id="o_dither"><option value="none">无（推荐）</option><option value="bayer">有序 4×4</option><option value="floyd">误差扩散</option></select><input type="range" id="o_ditherAmt" min="0" max="100" value="50"></div>
+    </details>
+    <details open><summary>杂色清理</summary>
+      <label class="row chk"><input type="checkbox" id="o_rareMerge" checked>合并低占比颜色</label>
+      <div class="row"><span>低于</span><input type="range" id="o_rarePct" min="0" max="3" step="0.1" value="0.3"><output for="o_rarePct"></output><span>%</span></div>
+      <label class="row chk"><input type="checkbox" id="o_islandMerge" checked>吸收杂色小块（相近色）</label>
+      <div class="row"><span>块≤</span><input type="range" id="o_islandSize" min="1" max="12" value="2"><output for="o_islandSize"></output><span>色差≤</span><input type="range" id="o_islandDE" min="2" max="40" value="12"><output for="o_islandDE"></output></div>
+      <div class="hint">差别很大的单个像素（眼睛高光等）不会被吸收。要保留的细节用结果图上的「保护笔」涂一下。</div>
+    </details>
+    <details><summary>描边</summary>
+      <label class="row chk"><input type="checkbox" id="o_outlineUnify">统一描边色（轮廓上的暗色）</label>
+      <div class="row"><span>暗度≤</span><input type="range" id="o_outlineL" min="10" max="60" value="30"><output for="o_outlineL"></output></div>
+      <label class="row chk"><input type="checkbox" id="o_pixelPerfect">描边去 L 角（像素完美线）</label>
+      <label class="row chk"><input type="checkbox" id="o_addOutline">加 1px 外描边</label>
+      <div class="row"><span>描边色</span><input type="color" id="o_outlineColorPick" value="#1a1420"><label class="chk"><input type="checkbox" id="o_outlineCustom">指定</label></div>
+    </details>
+    <details open><summary>输出</summary>
+      <label class="row chk" title="每个像素块放大回它在原图中的位置：尺寸、位置和原图完全一致，可直接替换游戏贴图"><input type="checkbox" id="o_restore">导出为原图尺寸（直接替换原贴图）</label>
+      <label class="row chk"><input type="checkbox" id="o_trim">裁掉透明边</label>
+      <div class="row"><span>导出倍率</span><select id="o_scale"><option>1</option><option>2</option><option>3</option><option selected>4</option><option>5</option><option>6</option><option>8</option></select></div>
+      <div class="row btns"><button id="btnConvPNG" class="primary">导出 PNG</button><button id="btnToEditor" class="accent">送到编辑器 →</button></div>
+    </details>
+  </aside>
+  <div class="stage">
+    <div class="toolbar">
+      <button id="cvZoomOut" title="缩小">－</button><span id="cvZoomLbl">100%</span><button id="cvZoomIn" title="放大">＋</button>
+      <button id="cvFit">适应</button>
+      <span class="sep"></span>
+      <label class="chk"><input type="checkbox" id="cvGrid">显示网格</label>
+      <label class="chk"><input type="checkbox" id="cvSolo">只看结果</label>
+      <label class="chk" title="橙框：3×3 范围内颜色≥5 种的位置，适合重点清理或手工重画"><input type="checkbox" id="cvNoise">杂色热区</label>
+      <span class="sep"></span>
+      <label class="chk" title="点原图（或结果图）上的位置，把原图那里的颜色加入色板：自动模式进「必保色」，锁定模式直接加入色板。适合小面积但重要的颜色（徽章、花、灯火）"><input type="checkbox" id="cvPick">吸色</label>
+      <label class="chk" title="在结果图上涂抹：被保护的区域不参与杂色合并"><input type="checkbox" id="cvProtect">保护笔</label>
+      <select id="cvProtectSize"><option value="1">1格</option><option value="2" selected>2格</option><option value="4">4格</option></select>
+      <button id="cvProtectClear">清除保护</button>
+      <span class="spacer"></span>
+      <span class="muted" id="cvStatus"></span>
+    </div>
+    <div class="split" id="cvSplit">
+      <div class="pane"><div class="tag">原图</div><canvas id="cvSrc"></canvas></div>
+      <div class="pane"><div class="tag">结果</div><canvas id="cvDst"></canvas></div>
+    </div>
+  </div>
+  <aside class="panel right">
+    <h4>颜色体检</h4>
+    <div class="stats" id="statsBox">—</div>
+    <h4>处理步骤</h4>
+    <div class="steps" id="stepsBox">—</div>
+    <h4>结果色板 · 占比</h4>
+    <div class="usage" id="usageBox"></div>
+  </aside>
+</section>
+
+<!-- ============================ 编辑 ============================ -->
+<section id="view-edit" class="view">
+  <div class="tools" id="toolBar">
+    <button data-tool="pencil" title="铅笔 (B)">✎</button>
+    <button data-tool="eraser" title="橡皮 (E)">⌫</button>
+    <button data-tool="dither" title="抖动笔 (D)">▦</button>
+    <button data-tool="fill" title="填充 (G)">◧</button>
+    <button data-tool="picker" title="吸管 (I)">⊙</button>
+    <button data-tool="line" title="直线 (L)">╱</button>
+    <button data-tool="rect" title="矩形 (R)">▭</button>
+    <button data-tool="ellipse" title="椭圆 (O)">◯</button>
+    <button data-tool="gradient" title="抖动渐变 (J)">◩</button>
+    <button data-tool="select" title="框选 (M)">⬚</button>
+    <button data-tool="wand" title="魔棒选区 (W)">✦</button>
+    <button data-tool="move" title="移动 (V)">✥</button>
+    <button data-tool="bgpick" title="去底魔棒 (K)：点背景，连通区域变透明">⌧</button>
+    <button data-tool="replace" title="换色 (C)：点一个颜色，整层同色换成主色">⇄</button>
+  </div>
+  <div class="stage">
+    <div class="toolbar" id="edOpts">
+      <span id="toolName" class="tname">铅笔</span>
+      <span class="opt" data-for="pencil eraser dither"><span>笔刷</span><input type="range" id="e_brush" min="1" max="8" value="1"><output for="e_brush"></output></span>
+      <label class="chk opt" data-for="pencil"><input type="checkbox" id="e_pp" checked>像素完美</label>
+      <label class="chk opt" data-for="pencil eraser dither"><input type="checkbox" id="e_symX">左右对称</label>
+      <label class="chk opt" data-for="pencil eraser dither"><input type="checkbox" id="e_symY">上下对称</label>
+      <label class="chk opt" data-for="fill replace"><input type="checkbox" id="e_global">全局（不限连通）</label>
+      <label class="chk opt" data-for="rect ellipse"><input type="checkbox" id="e_filled">实心</label>
+      <span class="opt" data-for="wand bgpick"><span>容差</span><input type="range" id="e_tol" min="0" max="30" value="4"><output for="e_tol"></output></span>
+      <label class="chk opt" data-for="replace"><input type="checkbox" id="e_allFrames">所有帧和图层</label>
+      <span class="spacer"></span>
+      <button id="edUndo" title="撤销 Ctrl+Z">↶</button><button id="edRedo" title="重做 Ctrl+Y">↷</button>
+      <button id="edZoomOut">－</button><span id="edZoomLbl">100%</span><button id="edZoomIn">＋</button><button id="edFit">适应</button>
+      <label class="chk"><input type="checkbox" id="edGrid" checked>网格</label>
+      <label class="chk"><input type="checkbox" id="edTile">平铺</label>
+      <label class="chk"><input type="checkbox" id="edOnion">洋葱皮</label>
+    </div>
+    <div class="edwrap" id="edWrap"><canvas id="edCanvas"></canvas><div class="empty" id="edEmpty">在「转换」页点「送到编辑器」，或 <button id="edNew">新建画布</button> / <button id="edOpenImg">打开图片</button></div></div>
+    <div class="statusbar"><span id="edPos">—</span><span id="edSize"></span><span class="spacer"></span><span id="edSelInfo"></span></div>
+  </div>
+  <aside class="panel right edside">
+    <h4>颜色</h4>
+    <div class="colors">
+      <div class="cc"><div id="colPrimary" class="cbox" title="主色（左键）"></div><div id="colSecondary" class="cbox sec" title="副色（右键），X 交换"></div></div>
+      <input type="color" id="colPick" value="#1a1420">
+      <button id="colSwap" title="交换 (X)">⇆</button>
+    </div>
+    <h4>色板 <span class="muted small">左键主色 · 右键副色 · 双击改色</span></h4>
+    <div class="swatches ed" id="edPal"></div>
+    <label class="chk small"><input type="checkbox" id="palLink" checked>改色时联动替换画面中的该色</label>
+    <div class="row btns">
+      <button id="edPalAdd" title="把主色加入色板">＋主色</button>
+      <button id="edPalExtract" title="从画面提取色板">提取</button>
+      <button id="edPalSnap" title="把当前图层吸附到色板颜色">吸附到色板</button>
+      <button id="edPalImport">导入</button>
+    </div>
+    <input type="color" id="palEditor" hidden>
+    <h4>选区与画布</h4>
+    <div class="row btns">
+      <button id="selAll">全选</button><button id="selNone">取消</button><button id="selDel">删除</button>
+      <button id="selToLayer">选区→新图层</button><button id="selCrop">裁剪到选区</button>
+    </div>
+    <div class="row btns">
+      <button id="flipH">水平翻转</button><button id="flipV">垂直翻转</button><button id="cvResize">画布大小…</button><button id="cvTrim">裁掉透明边</button>
+    </div>
+    <h4>图层</h4>
+    <div class="layers" id="layerList"></div>
+    <div class="row btns">
+      <button id="lyAdd">＋</button><button id="lyDup">复制</button><button id="lyDel">删除</button><button id="lyUp">上移</button><button id="lyDown">下移</button><button id="lyMerge">向下合并</button>
+    </div>
+    <div class="row"><span>不透明度</span><input type="range" id="lyOpacity" min="0" max="100" value="100"><output for="lyOpacity"></output></div>
+    <h4>动画帧</h4>
+    <div class="frames" id="frameList"></div>
+    <div class="row btns">
+      <button id="frAdd">＋复制帧</button><button id="frDel">删除</button><button id="frLeft">◀</button><button id="frRight">▶</button><button id="frPlay">▶ 播放</button>
+    </div>
+    <div class="row"><span>本帧时长</span><input type="number" id="frDur" min="20" max="5000" step="10" value="120"><span>ms</span></div>
+  </aside>
+</section>
+
+<!-- ============================ 批量 ============================ -->
+<section id="view-batch" class="view">
+  <div class="batch">
+    <div class="batch-head">
+      <div>
+        <h3>批量转换</h3>
+        <p class="muted">对多张图片使用「转换」页的设置。做同一套素材时，先在转换页调好一张并「保存为模板」，再勾选「固定模板」：整批用同一个模板（网格、取色、色板、清理、导出方式全部一致），不会每张自动改设置。</p>
+      </div>
+      <div class="row btns">
+        <button id="bAddFiles" class="primary">添加图片</button>
+        <button id="bAddFolder">添加文件夹</button>
+        <button id="bClear">清空</button>
+        <span>倍率</span><select id="bScale"><option>1</option><option>2</option><option>3</option><option selected>4</option><option>6</option><option>8</option></select>
+        <button id="bRun" class="accent">开始并打包 ZIP</button>
+      </div>
+      <div class="row"><span>模板</span><select id="bTplSel" data-noconv="1"><option value="">— 选择模板 —</option></select>
+        <label class="chk"><input type="checkbox" id="bTplLock" data-noconv="1">固定模板</label></div>
+      <div class="info" id="bTplInfo"></div>
+      <div class="info" id="bSummary"></div>
+      <input type="file" id="bFiles" accept="image/*" multiple hidden>
+      <input type="file" id="bFolder" webkitdirectory multiple hidden>
+    </div>
+    <div class="bgrid" id="bList"></div>
+  </div>
+</section>
+
+<!-- ============================ 对话框 ============================ -->
+<div class="modal" id="modal"><div class="dlg"><h3 id="mTitle"></h3><div id="mBody"></div><div class="row btns end" id="mBtns"></div></div></div>
+<div class="toast" id="toast"></div>
+<script>{{CORE}}</script>
+<script>window.SAMPLE_IMAGE = "{{SAMPLE}}";</script>
+<script>{{APP}}</script>
+</body>
+</html>

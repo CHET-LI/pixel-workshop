@@ -1,0 +1,40 @@
+{
+ "character": "凤笑天",
+ "class": "战士",
+ "source": "城镇小人 warrior_stand.png（像素工坊 PXD 工作流）",
+ "frame_size": [
+  106,
+  168
+ ],
+ "foot": [
+  53,
+  164
+ ],
+ "display_scale": 0.375,
+ "filter": "nearest",
+ "left": "右侧镜像",
+ "anims": {
+  "idle": {
+   "frames": 2,
+   "fps": 2.5,
+   "loop": true,
+   "sheets": {
+    "front": "sheets/feng_idle_front/feng_idle_front_sheet.png",
+    "back": "sheets/feng_idle_back/feng_idle_back_sheet.png",
+    "right": "sheets/feng_idle_right/feng_idle_right_sheet.png",
+    "left": "sheets/feng_idle_left/feng_idle_left_sheet.png"
+   }
+  },
+  "run": {
+   "frames": 6,
+   "fps": 10,
+   "loop": true,
+   "sheets": {
+    "front": "sheets/feng_run_front/feng_run_front_sheet.png",
+    "back": "sheets/feng_run_back/feng_run_back_sheet.png",
+    "right": "sheets/feng_run_right/feng_run_right_sheet.png",
+    "left": "sheets/feng_run_left/feng_run_left_sheet.png"
+   }
+  }
+ }
+}
