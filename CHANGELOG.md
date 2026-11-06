@@ -9,9 +9,7 @@ All notable changes to Pixel Workshop. 版本历史（中英对照）.
 - 新增顶栏 `☰ 菜单`：载入示例、召唤师原型 · 队伍立绘、导出当前结果、关于。
   Added a `☰ Menu` in the top bar: load sample, summoner-prototype portraits, export, about.
 - 立绘面板：4 个角色 × 表情，点击循环切换，`Esc` / 点空白关闭；19 张立绘 + 1 张彩蛋全部内联（约 290KB），单文件仍然离线可用。
-  Portrait panel: 4 characters × expressions, click to cycle, close with `Esc` or a click outside; all 19 portraits + 1 easter-egg image are inlined (~290KB) so the single file stays offline.
-- 彩蛋：「关于」连点三下 → 菜单底部出现隐藏项；立绘面板对「猎手」连点三下 → `alert` + 一行小字。
-  Easter egg: click About three times to reveal a hidden menu entry; click the Ranger portrait three times in the panel for an `alert` expression and a small caption.
+  Portrait panel: 4 characters × expressions, click to cycle, close with `Esc` or a click outside; all portraits are inlined (~290KB) so the single file stays offline.
 - 中英日三语 README（`README.md` / `README.zh-CN.md` / `README.ja.md`），其余语言欢迎 PR。
   READMEs in English / Chinese / Japanese; other languages welcome via PR.
 - 示例 `examples/feng_warrior/` 换成新立绘（正面 128×258、背面 122×259，由本工具转换），`feng_anim.py` 部位坐标按新比例重调；侧身源图未提供，左右两方向暂缺。

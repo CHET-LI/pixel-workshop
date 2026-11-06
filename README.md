@@ -63,9 +63,8 @@ House-sized images have usually been resized, so the grid is gone for good. The 
 
 - **Load sample (AI fox)**, **Export current result**, **About** — same as the existing buttons.
 - **Summoner prototype · party portraits**: a panel with four portraits (Summoner / Warrior / Mage / Ranger); click one to cycle to that character's next expression, the footer shows the current character and expression, `Esc` closes. The art comes from the same author's other project `summoner-proto`, included as a real-world example.
-- **Easter egg**: the entry is hidden by default. Click **About** three times and `▸ Summoner prototype (easter egg)` slides out at the bottom of the menu; or click the Ranger portrait three times in the panel and she turns `alert` with a small caption underneath.
 
-All portraits are inlined (19 images + 1 egg, ~290KB), so the file stays offline and self-contained.
+All portraits are inlined (~290KB), so the file stays offline and self-contained.
 
 ## Three pages
 
