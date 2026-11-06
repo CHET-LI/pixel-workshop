@@ -8,6 +8,8 @@
 > sprite sheets / GIFs or a plain-text pixel format (`.pxd.json`) that scripts and agents can
 > read and animate. Single self-contained HTML file Б─■ no install, no build, runs offline.
 
+![Г∙▄И²╒О╪ Х╫╫Е┘╔Г╓╨Д╬▀Е░▌Г └Х╫╛Ф█╒Е╞╧Ф╞■](docs/screenshot-convert.png)
+
 ![Г╓╨Д╬▀О╪ Е╬┘Ф°╨Д╦▌Х╥▒Ф╜╔ 4 Ф√╧Е░▒](examples/feng_warrior/out/И╒└Х╖┬_Е┤╓Г╛▒Е╓╘_Е╬┘Ф°╨Х╥▒Ф╜╔_4Ф√╧Е░▒.png)
 
 ## Х╖ёЕ├ЁГ └И≈╝И╒≤
@@ -97,4 +99,4 @@ AI Е┤╨Е⌡╬ Б├▓ Х╫╛Ф█╒О╪┬Фё─Ф÷╔Е²≈Е╓╖Е╟▐О╪▄Ф▄▒Х┴╡Ф²©О╪▄Х╟┐Ф²┌Х┴╡Ф╦┘Г░├О╪▄Ф╤┌Д©²Ф┼╓
   
 ## License  
   
-MIT License ║╙ ╪Ш [LICENSE](LICENSE)║ё╧╓╬ъ║╒т╢бК╨мй╬юЩ╤╪©иртвтсий╧сц║╒пч╦д║╒илсцё╩в╙ть╩Р╤Ч╢н╥ж╥╒гК╠ёаТ╟Фх╗иЫцВ║ё  
+MIT License   [LICENSE](LICENSE)ъ║т╢й╬й╧ц║ч╦д║цёв╙ь╩н╥ж╥К╠ёх╗  
