@@ -2,7 +2,7 @@
 
 [中文](README.zh-CN.md) | [English](README.md) | **日本語**
 
-> v1.4.0 · MIT · 単一ファイル・オフライン動作 · [最新版をダウンロード](https://github.com/CHET-LI/pixel-workshop/releases/latest)
+> v1.5.0 · MIT · 単一ファイル・オフライン動作 · [最新版をダウンロード](https://github.com/CHET-LI/pixel-workshop/releases/latest)
 
 AI が生成した「ピクセル風」の画像を、**本物のピクセルアート**に直すツールです。ピクセルのグリッドを復元し、色をパレットに揃え、輪郭をはっきりさせたうえで、自動処理で直しきれない部分を小さなエディタで描き直せます。
 

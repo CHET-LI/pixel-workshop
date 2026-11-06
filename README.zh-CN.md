@@ -2,7 +2,7 @@
 
 **中文** | [English](README.md) | [日本語](README.ja.md)（欢迎补翻译 / translations welcome）
 
-> v1.4.0 · MIT · 单文件离线运行 · [下载最新版](https://github.com/CHET-LI/pixel-workshop/releases/latest)
+> v1.5.0 · MIT · 单文件离线运行 · [下载最新版](https://github.com/CHET-LI/pixel-workshop/releases/latest)
 
 把 AI 生成的“像素风”图整理成**真正的像素画**（统一色板、边界清楚），再用内置编辑器**局部重画**。
 单个 HTML 文件，双击用浏览器（Chrome / Edge）打开即可，离线运行，图片不会上传。
@@ -83,6 +83,7 @@ v1.3 新增一种纯文本像素数据格式 **`.pxd.json`**：色板 + 每像�
 ![菜单 · 召唤师原型队伍立绘](docs/screenshot-portraits.png)
 
 - **载入示例（AI 狐狸）**、**导出当前结果**、**关于**：和原来按钮等价，只是多一个入口。
+- **语言 / Language**：整份界面在中文和英文之间切换，选择记在浏览器里，下次打开还是它。
 - **召唤师原型 · 队伍立绘**：弹出面板，横排四张立绘（召唤师 / 战士 / 法师 / 猎手），点一张就切到该角色的下一个表情，底部显示当前角色和表情名，`Esc` 关闭。素材来自同一个作者的另一个项目 `summoner-proto`，作为真实用例放在这里。
 
 ## 三个页面

@@ -2,6 +2,19 @@
 
 All notable changes to Pixel Workshop. 版本历史（中英对照）.
 
+## v1.5.0 — 2026-11-07
+
+**界面中英切换 · Chinese / English UI**
+
+- `☰ 菜单` 新增「语言 / Language」：中文 ↔ English，选择记在本机浏览器里，下次打开保持。
+  The `☰ Menu` now has **Language**: Chinese ↔ English; the choice is stored in the browser and restored next time.
+- 切换是运行时替换（约 240 条词典 + 反向表），不动源码结构；弹窗、提示、帮助说明都会跟着换。
+  Switching happens at runtime (~240 dictionary entries plus a reverse map) with no structural changes; dialogs, hints and the help text follow.
+- 帮助说明准备了中英两份正文，按当前语言显示。
+  The help text ships in both languages and follows the current language.
+- 单文件 641KB，仍然离线可用。
+  Still a single offline file at ~641KB.
+
 ## v1.4.0 — 2026-11-06
 
 **Menu + summoner prototype portraits · 菜单与召唤师原型立绘**

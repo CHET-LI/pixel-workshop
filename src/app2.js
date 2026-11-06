@@ -573,7 +573,7 @@ function exportDialog() {
 $('btnExport').onclick = exportDialog;
 
 // ------------------------------------------------------------------ help
-$('btnHelp').onclick = () => modal('像素工坊 · 使用说明', `<div class="help">
+const HELP_ZH = `<div class="help">
 <h4>它解决什么问题</h4><p>AI 生成的「像素风」图只是看起来像像素：一个像素块里有几十种相近颜色，边缘有抗锯齿，网格也不严格对齐。直接缩小会糊，直接减色会丢细节（压过头）。本工具先<b>找回原本的像素网格</b>，每格取一个主色，再把颜色<b>吸附到你的色板</b>，只清理<b>相近色的零碎杂点</b>，最后让你在编辑器里对五官、武器等部位<b>单独重画</b>。</p>
 <h4>推荐流程</h4><ol>
 <li>「转换」页打开 AI 图 → 自动识别网格（看左侧提示的块大小是否合理，不对就改「固定块大小」）。</li>
@@ -586,7 +586,26 @@ $('btnHelp').onclick = () => modal('像素工坊 · 使用说明', `<div class="
 <kbd>X</kbd>交换主副色 · <kbd>[</kbd><kbd>]</kbd>笔刷大小 · 右键 = 用副色画 · 空格/中键拖动平移 · 滚轮缩放 · <kbd>0</kbd>适应窗口<br>
 <kbd>Ctrl+Z</kbd>撤销 <kbd>Ctrl+Y</kbd>重做 · <kbd>Ctrl+A</kbd>全选 <kbd>Ctrl+D</kbd>/<kbd>Esc</kbd>取消选区 · <kbd>Ctrl+C/X/V</kbd>复制/剪切/粘贴 · <kbd>Del</kbd>删除选区 · 移动工具下方向键微调 · <kbd>Enter</kbd>确认粘贴 · Shift 画直线 45° / 正方形 / 加选</p>
 <h4>给代码 / AI 用：像素数据 PXD</h4><p>「导出 → 像素数据 .pxd.json」把画面存成色板 + 每像素一个字符的文本（含图层、帧、锚点），脚本和 AI 能直接读写；脚本生成的 .pxd.json 拖进窗口就能逐帧修。命令行 <code>cli/pw.js</code> 和动画库 <code>cli/pxanim.py</code> 见 WORKFLOW.md。</p>
-<h4>说明</h4><p>单文件离线运行，图片不会上传任何地方。设置和锁定的色板会记在本机浏览器里。</p></div>`, [{ label: '知道了', cls: 'accent' }]);
+<h4>说明</h4><p>单文件离线运行，图片不会上传任何地方。设置和锁定的色板会记在本机浏览器里。</p></div>`;
+const HELP_EN = `<div class="help">
+<h4>What it is for</h4><p>An AI "pixel" image only looks like pixels: each block holds dozens of near-identical colours, edges are anti-aliased and the grid is not aligned. Shrinking it blurs; reducing colours directly crushes detail. This tool <b>recovers the original pixel grid</b>, takes one main colour per cell, <b>snaps colours to your palette</b>, removes <b>near-duplicate speckles</b>, and then lets you <b>repaint</b> faces, weapons and other details in the editor.</p>
+<h4>Recommended flow</h4><ol>
+<li>Open your AI image on the Convert page — the grid is detected automatically (check the block size hint; override "fixed block size" if it looks wrong).</li>
+<li>Palette: start with "auto extract"; for a consistent set, click "lock palette", or import your own .gpl/.hex or extract from a tuned reference image.</li>
+<li>Noise cleanup: raise "below %" and "block ≤" if there are many speckles; protect highlights or eyes with the protect brush.</li>
+<li>"Send to editor" → use the wand or marquee to move a part to a new layer, repaint over it while comparing with the hidden old layer; unify colours with "recolour" or by double-clicking a swatch.</li>
+<li>Export PNG (integer upscale), sprite sheet, GIF or palette; the Batch page applies the same settings to a whole folder.</li></ol>
+<h4>Editor shortcuts</h4><p>
+<kbd>B</kbd>pencil <kbd>E</kbd>eraser <kbd>D</kbd>dither pen <kbd>G</kbd>fill <kbd>I</kbd>eyedropper <kbd>L</kbd>line <kbd>R</kbd>rectangle <kbd>O</kbd>ellipse <kbd>J</kbd>dither gradient <kbd>M</kbd>marquee <kbd>W</kbd>wand <kbd>V</kbd>move <kbd>K</kbd>background wand <kbd>C</kbd>recolour<br>
+<kbd>X</kbd>swap colours · <kbd>[</kbd><kbd>]</kbd>brush size · right click paints with the secondary colour · space / middle drag to pan · wheel to zoom · <kbd>0</kbd>fit to window<br>
+<kbd>Ctrl+Z</kbd>undo <kbd>Ctrl+Y</kbd>redo · <kbd>Ctrl+A</kbd>select all · <kbd>Ctrl+D</kbd>/<kbd>Esc</kbd>deselect · <kbd>Ctrl+C/X/V</kbd>copy/cut/paste · <kbd>Del</kbd>delete selection · arrow keys nudge with the move tool · <kbd>Enter</kbd>commit paste · hold Shift for 45° lines / squares / adding to selection</p>
+<h4>Pixel data for code and agents (PXD)</h4><p>"Export → pixel data .pxd.json" stores the image as a palette plus one character per pixel (layers, frames and anchors included), readable by scripts and agents. Drag a script-generated .pxd.json into the window to fix it frame by frame. The CLI <code>cli/pw.js</code> and the animation library <code>cli/pxanim.py</code> are documented in WORKFLOW.md.</p>
+<h4>Notes</h4><p>Runs fully offline in a single file; images are never uploaded. Settings and the locked palette live in your browser.</p></div>`;
+$('btnHelp').onclick = () => {
+  const en = !!(window.pwLang && window.pwLang() === 'en');
+  modal(en ? 'Pixel Workshop · Help' : '像素工坊 · 使用说明', en ? HELP_EN : HELP_ZH,
+        [{ label: en ? 'Got it' : '知道了', cls: 'accent' }]);
+};
 
 // ------------------------------------------------------------------ keyboard
 const KEYS = { b: 'pencil', e: 'eraser', d: 'dither', g: 'fill', i: 'picker', l: 'line', r: 'rect', o: 'ellipse', j: 'gradient', m: 'select', w: 'wand', v: 'move', k: 'bgpick', c: 'replace' };
@@ -621,7 +640,7 @@ document.addEventListener('keyup', e => { if (e.key === ' ') { E.space = false; 
 setTool('pencil'); edColors();
 
 // ------------------------------------------------------------------ 菜单 + 召唤师原型立绘（v1.4.0）
-const VERSION = '1.4.0';
+const VERSION = '1.5.0';
 (function initMenu() {
   const btn = $('btnMenu'), pop = $('menuPop'), mask = $('protoPanel');
   if (!btn || !pop) return;
@@ -656,6 +675,24 @@ const VERSION = '1.4.0';
     if (eggTaps.n >= 3) { $('miEgg').hidden = false; eggTaps.n = 0; }
   }
   $('miEgg').onclick = () => { openMenu(false); openProto(true); };
+
+  // 语言切换
+  const langBtn = $('miLang');
+  const syncLang = () => {
+    if (!langBtn) return;
+    langBtn.textContent = (window.pwLang && window.pwLang() === 'en') ? 'Language: English' : '语言 / Language：中文';
+  };
+  if (langBtn) {
+    langBtn.onclick = (e) => {
+      e.stopPropagation();
+      const next = (window.pwLang && window.pwLang() === 'en') ? 'zh' : 'en';
+      window.pwSetLang && window.pwSetLang(next);
+      syncLang();
+      openMenu(false);
+    };
+    document.addEventListener('pw-lang', syncLang);
+    syncLang();
+  }
 
   // ---------------- 立绘面板
   function build() {

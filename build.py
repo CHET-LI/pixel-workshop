@@ -41,11 +41,12 @@ def portraits_js():
 html = (src / 'index.html').read_text(encoding='utf-8')
 css = (src / 'style.css').read_text(encoding='utf-8')
 core = (src / 'core.js').read_text(encoding='utf-8')
+i18n = (src / 'i18n.js').read_text(encoding='utf-8')
 app = '(function(){\n' + (src / 'app1.js').read_text(encoding='utf-8') + '\n' + (src / 'app2.js').read_text(encoding='utf-8') + '\n})();\n'
-for name, js in (('core', core), ('app', app)):
+for name, js in (('core', core), ('i18n', i18n), ('app', app)):
     assert '</script' not in js.lower(), name + ' contains </script'
-parts = {'{{CSS}}': css, '{{CORE}}': core, '{{APP}}': app, '{{SAMPLE}}': sample_uri(),
+parts = {'{{CSS}}': css, '{{CORE}}': core, '{{I18N}}': i18n, '{{APP}}': app, '{{SAMPLE}}': sample_uri(),
          '{{PORTRAITS}}': portraits_js()}
-out = re.sub(r'\{\{(CSS|CORE|APP|SAMPLE|PORTRAITS)\}\}', lambda m: parts[m.group(0)], html)
+out = re.sub(r'\{\{(CSS|CORE|I18N|APP|SAMPLE|PORTRAITS)\}\}', lambda m: parts[m.group(0)], html)
 (root / 'PixelWorkshop.html').write_text(out, encoding='utf-8')
 print('PixelWorkshop.html', len(out.encode('utf-8')), 'bytes')

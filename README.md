@@ -2,13 +2,15 @@
 
 [中文](README.zh-CN.md) | **English** | [日本語](README.ja.md)
 
-> v1.4.0 · MIT · single-file, offline · [Download latest](https://github.com/CHET-LI/pixel-workshop/releases/latest)
+> v1.5.0 · MIT · single-file, offline · [Download latest](https://github.com/CHET-LI/pixel-workshop/releases/latest)
 
 Pixel Workshop turns AI-generated "pixel-style" images into **real pixel art** — recovered pixel grid, clean palette, crisp edges — and gives you a small editor to repaint the parts the converter cannot fix.
 
 One self-contained HTML file. Double-click it in Chrome / Edge. No install, no build step, nothing is uploaded anywhere.
 
 ![Convert view: sample image, before and after](docs/screenshot-convert.png)
+
+![English UI](docs/screenshot-en.png)
 
 ## What it solves
 
@@ -62,6 +64,7 @@ House-sized images have usually been resized, so the grid is gone for good. The 
 ![Menu · summoner prototype portraits](docs/screenshot-portraits.png)
 
 - **Load sample (AI fox)**, **Export current result**, **About** — same as the existing buttons.
+- **Language**: switch the whole UI between Chinese and English at runtime; the choice is remembered in the browser.
 - **Summoner prototype · party portraits**: a panel with four portraits (Summoner / Warrior / Mage / Ranger); click one to cycle to that character's next expression, the footer shows the current character and expression, `Esc` closes. The art comes from the same author's other project `summoner-proto`, included as a real-world example.
 
 All portraits are inlined (~290KB), so the file stays offline and self-contained.
