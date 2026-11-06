@@ -39,23 +39,38 @@ def auto_labels(view, art, pal):
     names = ['body', 'leg_l', 'leg_r', 'cape_l', 'cape_r']
     lab = np.where(art >= 0, 0, -1).astype(np.int16)
     op = art >= 0
+    BIG = h > 200        # 新版立绘（前 128x258 / 后 122x259）：腿更长，坐标按实测
     if view == 'front':
-        L = poly_mask(h, w, [(37, 119), (52, 119), (52, 124), (51, 140), (51, 146), (51, 165), (29, 165), (29, 152), (36, 146), (37, 140)])
-        R = poly_mask(h, w, [(56, 119), (71, 119), (71, 140), (73, 146), (73, 165), (58, 165), (58, 146), (57, 140), (56, 124)])
-        lab[op & L] = 1; lab[op & R] = 2
-        CL = np.zeros_like(op); CL[100:150, :37] = True
-        CR = np.zeros_like(op); CR[100:150, 72:] = True
+        if BIG:
+            L = poly_mask(h, w, [(36, 178), (61, 178), (61, h - 1), (36, h - 1)])
+            R = poly_mask(h, w, [(62, 178), (86, 178), (86, h - 1), (62, h - 1)])
+            lab[op & L] = 1; lab[op & R] = 2
+            CL = np.zeros_like(op); CL[163:, :38] = True
+            CR = np.zeros_like(op); CR[163:, 87:] = True
+        else:
+            L = poly_mask(h, w, [(37, 119), (52, 119), (52, 124), (51, 140), (51, 146), (51, 165), (29, 165), (29, 152), (36, 146), (37, 140)])
+            R = poly_mask(h, w, [(56, 119), (71, 119), (71, 140), (73, 146), (73, 165), (58, 165), (58, 146), (57, 140), (56, 124)])
+            lab[op & L] = 1; lab[op & R] = 2
+            CL = np.zeros_like(op); CL[100:150, :37] = True
+            CR = np.zeros_like(op); CR[100:150, 72:] = True
         lab[op & CL & (lab == 0)] = 3; lab[op & CR & (lab == 0)] = 4
     elif view == 'back':
-        L = poly_mask(h, w, [(37, 139), (53, 139), (53, 166), (35, 166), (35, 150)])
-        R = poly_mask(h, w, [(55, 139), (71, 139), (71, 166), (55, 166)])
-        lab[op & L] = 1; lab[op & R] = 2
         grey = np.zeros_like(op)
         for i, c in enumerate(pal):
             r, g, b = c[:3]
             if abs(r - g) < 22 and abs(g - b) < 26 and r > 70: grey |= (art == i)
-        CL = np.zeros_like(op); CL[112:142, :53] = True
-        CR = np.zeros_like(op); CR[112:142, 53:] = True
+        if BIG:
+            L = poly_mask(h, w, [(31, 186), (55, 186), (55, h - 1), (31, h - 1)])
+            R = poly_mask(h, w, [(56, 186), (77, 186), (77, h - 1), (56, h - 1)])
+            lab[op & L] = 1; lab[op & R] = 2
+            CL = np.zeros_like(op); CL[168:, :31] = True
+            CR = np.zeros_like(op); CR[168:, 76:] = True
+        else:
+            L = poly_mask(h, w, [(37, 139), (53, 139), (53, 166), (35, 166), (35, 150)])
+            R = poly_mask(h, w, [(55, 139), (71, 139), (71, 166), (55, 166)])
+            lab[op & L] = 1; lab[op & R] = 2
+            CL = np.zeros_like(op); CL[112:142, :53] = True
+            CR = np.zeros_like(op); CR[112:142, 53:] = True
         lab[op & CL & (lab == 0) & ~grey] = 3; lab[op & CR & (lab == 0) & ~grey] = 4
     elif view == 'right':
         names = ['body', 'thigh', 'shin', 'cape_b']
@@ -124,8 +139,8 @@ def load_view(view):
     pp = f'{OUT}/parts/feng_{view}_parts.pxd.json'
     s = load_pxd(f'{SRC}/feng_{view}.pxd.json')
     art = s.frames[0][0].copy()
-    # 修掉两腿之间那道灰线（README 里记录的已知问题）
-    if view in ('front', 'back'):
+    # 修掉两腿之间那道灰线（README 里记录的已知问题）；新版立绘没有这个问题
+    if view in ('front', 'back') and art.shape[0] < 200:
         for y in range(134 if view == 'back' else 144, 150):
             for x in range(50, 60):
                 v = art[y, x]
@@ -146,11 +161,13 @@ def anim_front_back(view):
     W, H = art.shape[1], art.shape[0]
     legL, legR = extend_up(P['leg_l'], 4), extend_up(P['leg_r'], 4)
     frames = {}
+    # 披风摆动区间：新版立绘裙摆/披风在 y≈163 以下，旧版在 y≈104
+    CY0, CY1 = (163, 205) if H > 200 else (104, 149)
     # 待机：上半身下沉 1 格 + 披风下摆轻摆
     idle = []
     for k, (dy, sway) in enumerate([(0, 0), (1, 1)]):
         body = P['body']
-        cl, cr = shear_rows(P['cape_l'], 104, 149, -sway), shear_rows(P['cape_r'], 104, 149, sway)
+        cl, cr = shear_rows(P['cape_l'], CY0, CY1, -sway), shear_rows(P['cape_r'], CY0, CY1, sway)
         idle.append(compose(W, H, [legL, legR, (body, 0, dy), (cl, 0, dy), (cr, 0, dy)]))
     frames['idle'] = idle
     # 跑步 6 帧：左右腿交替抬起，身体上下起伏，披风反向甩
@@ -160,15 +177,15 @@ def anim_front_back(view):
     run = []
     for bdy, ly, ry, sw in RUN:
         if view == 'front':
-            cl, cr = shear_rows(P['cape_l'], 104, 149, sw - 1), shear_rows(P['cape_r'], 104, 149, sw + 1)
+            cl, cr = shear_rows(P['cape_l'], CY0, CY1, sw - 1), shear_rows(P['cape_r'], CY0, CY1, sw + 1)
         else:
-            cl, cr = shear_rows(P['cape_l'], 112, 141, sw), shear_rows(P['cape_r'], 112, 141, sw)
+            cl, cr = shear_rows(P['cape_l'], CY0, CY1, sw), shear_rows(P['cape_r'], CY0, CY1, sw)
         run.append(compose(W, H, [(legL, 0, ly), (legR, 0, ry), (P['body'], 0, bdy), (cl, 0, bdy), (cr, 0, bdy)]))
     frames['run'] = run
     return frames, pal
 
 if __name__ == '__main__':
-    views = [v for v in sys.argv[1:] if v != 'export'] or ['front', 'back', 'right']
+    views = [v for v in sys.argv[1:] if v != 'export'] or ['front', 'back']   # 侧身源图未提供，right 先不跑
     for v in views:
         fr, pal = anim_side() if v == 'right' else anim_front_back(v)
         for a, fs in fr.items():
@@ -178,15 +195,16 @@ if __name__ == '__main__':
         print(v, 'ok')
 
 def export_all():
-    """左 = 右的镜像；输出每个动作×方向的 PXD + 预览总表。"""
-    import glob
+    """左 = 右的镜像；输出每个动作×方向的 PXD + 预览总表（侧身源图未提供时跳过左右）。"""
     for a in ('idle', 'run'):
+        if not os.path.exists(f'{OUT}/feng_{a}_right.pxd.json'):
+            continue
         s = load_pxd(f'{OUT}/feng_{a}_right.pxd.json')
         fl = [[flip_h(f[0])] for f in s.frames]
         m = dict(s.meta); m['dir'] = 'left'; m['foot'] = [s.w - 1 - s.meta['foot'][0], s.meta['foot'][1]]; m['note'] = '右侧镜像'
         save_pxd(f'{OUT}/feng_{a}_left.pxd.json', fl, s.pal, durs=s.durs, meta=m, name=f'feng_{a}_left')
-    # 总预览：4 方向 × (待机2 + 跑步6)，3 倍
-    dirs = ['front', 'right', 'back', 'left']
+    # 总预览：新立绘只换到了正面/背面（侧身图还没给），左右两方向仍是旧立绘，所以先只排前/后
+    dirs = ['front', 'back']
     rows = []
     for d in dirs:
         fr = []
@@ -196,11 +214,11 @@ def export_all():
         rows.append(fr)
     w, h = rows[0][0].size
     S, gap = 3, 6
-    sheet = Image.new('RGBA', ((w + gap) * 8 + gap, (h + gap) * 4 + gap), (196, 186, 164, 255))
+    sheet = Image.new('RGBA', ((w + gap) * 8 + gap, (h + gap) * len(rows) + gap), (196, 186, 164, 255))
     for r, fr in enumerate(rows):
         for c, im in enumerate(fr):
             sheet.paste(im, (gap + c * (w + gap), gap + r * (h + gap)))
-    sheet.resize((sheet.width * S, sheet.height * S), Image.NEAREST).save(f'{OUT}/预览_凤笑天_待机跑步_4方向.png')
+    sheet.resize((sheet.width * S, sheet.height * S), Image.NEAREST).save(f'{OUT}/预览_凤笑天_待机跑步_前后.png')
 
 if __name__ == '__main__' and 'export' in sys.argv:
     export_all(); print('exported')

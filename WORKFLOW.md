@@ -52,7 +52,7 @@ AI 图 ──①转换──▶ 角色_方向.pxd.json ──②拆件──▶ 
 - `flip_h`：镜像。
 - `darken_map`：远侧肢体变暗，只从原色板里挑颜色（在示例脚本里）。
 
-范例：`examples/feng_warrior/feng_anim.py`（凤笑天，待机 2 帧 + 跑步 6 帧 × 4 方向）。
+范例：`examples/feng_warrior/feng_anim.py`（凤笑天，待机 2 帧 + 跑步 6 帧，v1.4 起为前/后两方向）。
 ```
 cd examples/feng_warrior
 python feng_anim.py front back right export     # 生成 out/*.pxd.json；left = right 的镜像

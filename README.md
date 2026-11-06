@@ -1,102 +1,90 @@
-# 像素工坊 Pixel Workshop（v1.3）
+# Pixel Workshop
 
-把 AI 生成的“像素风”图整理成**真正的像素画**（统一色板、边界清楚），再用内置编辑器**局部重画**。
-单个 HTML 文件，双击用浏览器（Chrome / Edge）打开即可，离线运行，图片不会上传。
+[中文](README.zh-CN.md) | **English** | [日本語](README.ja.md)
 
-> **English** — Pixel Workshop turns AI-generated "pixel-style" images into real pixel art:
-> it recovers the pixel grid, snaps colours to a palette, lets you repaint locally, and exports
-> sprite sheets / GIFs or a plain-text pixel format (`.pxd.json`) that scripts and agents can
-> read and animate. Single self-contained HTML file — no install, no build, runs offline.
+> v1.4.0 · MIT · single-file, offline · [Download latest](https://github.com/CHET-LI/pixel-workshop/releases/latest)
 
-![界面：载入示例后的转换对比](docs/screenshot-convert.png)
+Pixel Workshop turns AI-generated "pixel-style" images into **real pixel art** — recovered pixel grid, clean palette, crisp edges — and gives you a small editor to repaint the parts the converter cannot fix.
 
-![示例：待机与跑步 4 方向](examples/feng_warrior/out/预览_凤笑天_待机跑步_4方向.png)
+One self-contained HTML file. Double-click it in Chrome / Edge. No install, no build step, nothing is uploaded anywhere.
 
-## 解决的问题
-AI 的“像素图”只是看起来像：一个像素块里有几十种相近色、边缘有抗锯齿、网格不严格对齐。
-直接缩小会糊，直接减色会丢细节（压过头）。本工具的处理顺序：
+![Convert view: sample image, before and after](docs/screenshot-convert.png)
 
-1. **找回像素网格**：用边缘峰值测出块大小（示例图 5.87px，置信 99%），再让每条格线吸附到真实边缘，跟住 AI 图的网格漂移。
-2. **每格取主色**：只看格子中心区域，并用颜色分桶投票，抗锯齿的混色进不来。
-3. **自动去背景**：从边框连通地去掉背景，角色内部的同色区域不会被误删。
-4. **吸附色板**：可以自动提取 N 色（取真实色，不发灰，近似色自动合并），也可以锁定你的色板（预设 / 导入 .gpl .pal .hex / 粘贴色值 / 从参考图提取）。
-5. **只清理杂色**：占比很低的颜色并入最接近的颜色；小杂块只被**相近色**吸收，眼睛高光这类反差大的单像素会保留。「保护笔」涂过的地方完全不动。
-6. 可选：统一描边色、描边去 L 角、加 1px 外描边、裁掉透明边。
+## What it solves
 
-## 模糊的大图（v1.1，例如游戏里的房子贴图）
-房子这类图一般被缩放过，像素网格已经不存在了，找不回来。打开这类图时工具会自动识别，改用「重新像素化」：
+An AI "pixel image" only looks like pixels: each block holds dozens of near-identical colours, edges are anti-aliased, and the grid does not line up. Resize it down and it blurs; reduce the colours directly and detail is crushed. The pipeline is:
 
-- **自动套用「模糊大图预设」**，也可以手动点按钮套用。预设包括：
-  - 细线保护取样：窗框、描边这类细线不会被吃掉；
-  - 40+ 色；
-  - 保留小面积色：绿植等颜色不会被大块面挤掉；
-  - 去噪点；
-  - 按原尺寸导出。
-- **块大小**：图里残留的伪网格够明显，就用测出的值；不明显就用 3px。
-- **原尺寸导出**：转换页导出 `*_pixel_原尺寸.png`，编辑器导出菜单也有「原图尺寸 PNG」。尺寸、位置和原图完全一致，可以直接替换游戏里的贴图。批量页同样适用。
-- **吸色 → 必保色**：徽章、小花、灯火这类面积很小但重要的颜色容易被挤掉。打开「吸色」后点一下原图上的位置，这个颜色就一定会进色板（锁定色板模式下则直接加入色板）。
-- 可选锐化：默认关闭，打开后容易起噪点。
-- **「只统一色板（原尺寸，保留全部细节）」**：本身比较清楚、只是颜色太杂的 AI 场景图用这个。它的做法：
-  - 不重新分块，每个原图像素都保留（1px）；
-  - 不清理杂点，不去背景；
-  - 只把颜色吸附到色板上，比如 40 万色压到 37 色。
+1. **Recover the grid** — estimate the block size from edge peaks (the bundled sample measures 5.87px at 99% confidence), then snap every grid line to the real edge so the grid can follow AI drift.
+2. **One colour per cell** — sample the cell centre only and vote by colour bucket, so anti-aliased blends never win.
+3. **Remove the background** — flood from the border, so same-coloured regions *inside* the character survive.
+4. **Snap to a palette** — auto-extract N colours (real colours, no greying out, near-duplicates merged), or lock your own palette (presets / `.gpl` `.pal` `.hex` / pasted hex values / extracted from a reference image).
+5. **Clean only the noise** — low-share colours merge into the nearest colour; small blobs are absorbed only by *similar* colours, so eye highlights and other high-contrast single pixels stay. Anything painted with the protect brush is never touched.
+6. Optional: unify outline colour, drop L-corners on outlines, add a 1px outer outline, trim transparent borders.
 
-  效果相当于用一个很大的「目标宽度」（比如 5000px）处理，但尺寸不变、像素均匀、显存小得多。游戏里放大请用整数倍加最近邻。用过这个预设后，之后打开的模糊图会继续沿用它；遇到有清晰网格的图，会自动切回「自动识别」。
-- 局限：比一个像素块还小、又已经被原图糊掉的细节（比如 1–2 格大的小黄花）算法救不回来，送到编辑器里手工点几下即可。
-- 最好的来源仍然是 **AI 的原始输出**（还没缩放过的图），这种图网格能找回（示例狐狸的识别置信度是 99%）。
+## Blurry big images (v1.1, e.g. game building textures)
 
-## 模板（v1.2）
-调好一套满意的设置后，可以存成模板，以后一直用它：
-- 「转换」页左侧「模板」→「保存为模板」：保存全部设置，包括网格模式和块大小、取色方式、背景、色板模式和锁定的色板、必保色、杂色清理、描边、导出方式（含原尺寸），以及批量倍率。同名会覆盖。
-- **勾选「固定模板」**：之后打开、拖入、粘贴的新图片，还有批量处理，都严格按这个模板来。工具不再按图片自动切换「自动识别」、改块大小或套用「模糊大图预设」。批量里每张图也不再单独猜块大小，所以和单张转换的结果一致。
-- 固定期间临时改了参数，会提示「设置改过」；下一张图会恢复成模板设置。想保留改动就再点一次「保存为模板」覆盖。
-- 模板和固定状态存在浏览器里，关掉页面再打开仍然有效。「导出 / 导入」可以把模板存成 .json 文件，换电脑或换浏览器时用。
-- 批量页顶部也能直接选模板、勾选固定，摘要会显示「模板：固定「名字」」。
-- 不勾选固定时，行为和 v1.1 一样（按图片自动调整）。
+House-sized images have usually been resized, so the grid is gone for good. The tool detects these and switches to **re-pixelate**:
 
-## 像素数据 PXD 与代码动画（v1.3）
-v1.3 新增一种纯文本像素数据格式 **`.pxd.json`**：色板 + 每像素一个字符，含图层、帧和 meta（锚点、部位表等）。脚本和 AI 代理可以直接读写它，完整流程见 **`WORKFLOW.md`**。
+- **Auto-applies the "blurry big image" preset** (also available as a button): thin-line-safe sampling (window frames and outlines survive), 40+ colours, keep small-area colours (plants), denoise, export at original size.
+- **Block size**: use the measured pseudo-grid when it is obvious, otherwise 3px.
+- **Original-size export**: `*_pixel_原尺寸.png` from the convert page, or "original size PNG" in the editor's export menu. Same dimensions and position as the source — drop it straight back into the game. Works in batch too.
+- **Eyedropper → must-keep colours**: badges, flowers and lamps are tiny but important. Pick a pixel in the source and that colour is guaranteed to enter the palette.
+- Optional sharpening (off by default — it adds noise).
+- **"Snap palette only (original size, keep all detail)"**: for AI scene art that is already clean but has too many colours. No re-blocking, every source pixel kept, no noise cleanup, no background removal — only colours snap to the palette (e.g. 400k → 37 colours). Visually similar to a huge target width (say 5000px) but without changing the size.
+- Limitation: detail smaller than one block that the source already blurred (a 1–2 cell flower) cannot be recovered — fix it by hand in the editor.
+- Best input is still the **raw AI output** before any resizing; that is where the grid can be recovered (99% confidence on the bundled sample).
 
-- **导出**：「转换」页和编辑器都可以导出「像素数据 .pxd.json」。编辑器导出时保留全部图层和帧。
-- **打开**：`.pxd.json` 和项目文件 `.pxw.json` 可以直接拖进窗口，或者用「打开图片」按钮打开，会进入编辑器。meta 原样保留。
-- **命令行 `cli/pw.js`**（node，和网页同一套 core.js 算法）：
-  - `convert`：AI 图 → PXD，可以套用网页导出的模板；
-  - `topxd`：PNG → PXD，多张图可以作为多帧或多层；
-  - `render`：PXD → 逐帧 PNG、精灵表、GIF；
-  - `info`：查看图片或 PXD 的信息；
-  - `frompxw`：编辑器项目 → PXD。
-- **动画库 `cli/pxanim.py`**（Python）：
-  - 读写 PXD；
-  - 部位图：两层 PXD，人可以在编辑器里修改；
-  - 平移、叠图、RotSprite 旋转、镜像；
-  - 所有操作只用原色板里的颜色。
-- **示例 `examples/feng_warrior/`**：凤笑天城镇小人 → 待机 2 帧 + 跑步 6 帧 × 4 方向，附部位图、脚本、精灵表、GIF 和 JSON。
-- **测试**：
-  - `tests/core.test.js` 共 20 项，其中 PXD 往返 6 项；
-  - `tests/ui_pxd.py` 共 7 项：打开 PXD → 编辑器 → 导出，像素、帧时长、meta 都完全一致；转换页也能导出 PXD。
+## Templates (v1.2)
 
-## 三个页面
-- **① 转换**：左右对比（同步缩放和平移，可显示网格）。**杂色热区**用橙框标出颜色过杂的位置，这些地方适合手工重画。右侧是颜色体检、处理步骤和色板占比。
-- **② 编辑**：
-  - 工具：铅笔（像素完美）、橡皮、抖动笔、填充、吸管、直线、矩形、椭圆、抖动渐变、框选、魔棒、移动、去底魔棒、换色。
-  - 左右 / 上下对称，平铺预览。
-  - 图层（不透明度、合并）、动画帧（洋葱皮、播放），撤销 60 步。
-  - 双击色板改色，可联动替换画面中的该色；「吸附到色板」。
-  - **选区→新图层**：把五官、武器等部位单独拿出来重画，隐藏旧层对比。
-- **③ 批量**：整个文件夹套用同一套设置，打包 ZIP（附 palette.gpl）。做成套素材时，先保存模板并勾选「固定模板」：整批用完全相同的设置。没固定时，每张图会自动识别网格。
+- **Convert → Templates → Save as template** stores every setting: grid mode and block size, sampling, background, palette mode and locked palette, must-keep colours, noise cleanup, outline, export options (including original size) and batch scale. Same name overwrites.
+- **"Pin template"**: new images — opened, dropped or pasted — and every batch item use exactly this template. The tool stops auto-switching grid mode, block size or the blurry preset, and batch no longer guesses per image, so results match single conversions.
+- Changing a setting while pinned shows "settings changed"; the next image returns to the template.
+- Templates and the pin live in browser storage and survive restarts. **Export / import** writes them to a `.json` for moving between machines or browsers.
 
-## 导出
-PNG 1–8 倍最近邻放大、精灵表、GIF 动画（透明）、逐帧 PNG 的 ZIP、色板 .gpl / .hex / PNG、项目 .json（可以再打开继续编辑）。
+## PXD pixel data and code-driven animation (v1.3)
 
-## 推荐流程
-AI 出图 → 转换（检查块大小，挑色板，调杂色清理，涂保护）→ 送到编辑器（魔棒选部位 → 新图层重画 → 统一换色）→ 导出。
+`.pxd.json` is a plain-text pixel format: a palette plus one character per pixel, with layers, frames and metadata (anchors, part maps). Scripts and agents can read and write it directly — see **`WORKFLOW.md`**.
 
-## 文件
-- `PixelWorkshop.html`：完整工具，单文件，内置示例图。
-- `src/`：源码。`core.js` 是纯算法，可以在 node 下跑；`app1.js` / `app2.js` 是界面。
-- `cli/`：命令行 `pw.js`、Python 动画库 `pxanim.py`。`WORKFLOW.md`：像素图 → 代码动画工作流。
-- `build.py`：把 src 内联成单个 HTML。`tests/`：算法测试 14 项、浏览器 UI 测试 20 项、模板测试 21 项（`ui_template.py`）、游戏房子贴图测试 12 项（`ui_house.py`）。
-  
-## License  
-  
-MIT License   [LICENSE](LICENSE)ߡԴʾʹá޸ġãתػηַ뱣Ȩ  
+- **Export** "pixel data .pxd.json" from either the convert page or the editor (the editor keeps all layers and frames).
+- **Open** `.pxd.json` and project files `.pxw.json` by dragging them onto the window or via the open button; they land in the editor with metadata intact.
+- **`cli/pw.js`** (Node, same `core.js` algorithms as the web app):
+  - `convert` — AI image → PXD, optionally with a template exported from the web UI;
+  - `topxd` — PNG(s) → PXD, several images as frames or layers;
+  - `render` — PXD → per-frame PNGs, sprite sheet, GIF;
+  - `info`, `frompxw`.
+- **`cli/pxanim.py`** (Python): PXD I/O, part maps as a second layer you can edit in the app, shift/compose/RotSprite rotation/mirror, all colours constrained to the original palette.
+- **Example `examples/feng_warrior/`**: idle 2 frames + run 6 frames. v1.4 replaces the art with the new design (front 128×258, back 122×259, converted by Pixel Workshop itself) and `feng_anim.py`'s part coordinates were re-tuned to the new proportions; side-view source art is still missing, so left/right are not generated yet.
+
+## Menu and the summoner prototype portraits (v1.4)
+
+`☰ Menu` at the right end of the top bar:
+
+![Menu · summoner prototype portraits](docs/screenshot-portraits.png)
+
+- **Load sample (AI fox)**, **Export current result**, **About** — same as the existing buttons.
+- **Summoner prototype · party portraits**: a panel with four portraits (Summoner / Warrior / Mage / Ranger); click one to cycle to that character's next expression, the footer shows the current character and expression, `Esc` closes. The art comes from the same author's other project `summoner-proto`, included as a real-world example.
+- **Easter egg**: the entry is hidden by default. Click **About** three times and `▸ Summoner prototype (easter egg)` slides out at the bottom of the menu; or click the Ranger portrait three times in the panel and she turns `alert` with a small caption underneath.
+
+All portraits are inlined (19 images + 1 egg, ~290KB), so the file stays offline and self-contained.
+
+## Three pages
+
+- **① Convert** — side-by-side before/after with synchronised zoom and pan, optional grid overlay. The **noise heat map** outlines over-noisy regions worth repainting by hand. Right side: colour audit, processing steps, palette shares.
+- **② Edit** — pixel-perfect pencil, eraser, dither pen, fill, eyedropper, line, rectangle, ellipse, dither gradient, marquee, magic wand, move, background wand, recolour; X/Y mirror and tile preview; layers (opacity, merge), animation frames (onion skin, playback), 60-step undo; double-click a swatch to recolour the whole drawing; **selection → new layer** so you can repaint a face or a weapon while comparing against the original.
+- **③ Batch** — one setting for a whole folder, ZIP output with `palette.gpl`. Pin a template for consistent results.
+
+## Export
+
+PNG at 1–8× nearest-neighbour, sprite sheet, transparent GIF, per-frame PNG ZIP, palettes `.gpl` / `.hex` / PNG, project `.json` you can reopen and keep editing.
+
+## Repository layout
+
+- `PixelWorkshop.html` — the whole tool, single file, sample image embedded.
+- `src/` — source: `core.js` (pure algorithms, runs under Node), `app1.js` / `app2.js` (UI), `index.html`, `style.css`.
+- `cli/` — `pw.js` CLI, `pxanim.py` animation library; `WORKFLOW.md` covers pixel art → code animation.
+- `build.py` — inlines `src/` into the single HTML (also embeds the sample and the portraits).
+- `tests/` — algorithm tests, browser UI tests (convert, templates, game-building textures, PXD round-trip).
+
+## License
+
+MIT — see [LICENSE](LICENSE). Use it, change it, ship it commercially; keep the copyright notice when redistributing.

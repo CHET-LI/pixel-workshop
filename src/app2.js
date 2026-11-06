@@ -619,3 +619,97 @@ document.addEventListener('keydown', e => {
 document.addEventListener('keyup', e => { if (e.key === ' ') { E.space = false; edCv.style.cursor = E.tool === 'move' ? 'move' : 'crosshair'; } });
 
 setTool('pencil'); edColors();
+
+// ------------------------------------------------------------------ 菜单 + 召唤师原型立绘（v1.4.0）
+const VERSION = '1.4.0';
+(function initMenu() {
+  const btn = $('btnMenu'), pop = $('menuPop'), mask = $('protoPanel');
+  if (!btn || !pop) return;
+  const P = window.SUMMONER_PORTRAITS;
+  const expIdx = {};           // 每个角色当前表情序号
+  let eggDone = false, built = false;
+  const eggTaps = {};          // 彩蛋：连点计数
+  let eggTimer = null;
+
+  const openMenu = (on) => { pop.hidden = !on; btn.classList.toggle('on', on); };
+  btn.onclick = (e) => { e.stopPropagation(); openMenu(pop.hidden); };
+  document.addEventListener('click', (e) => {
+    if (!pop.hidden && !pop.contains(e.target) && e.target !== btn) openMenu(false);
+  });
+
+  $('miSample').onclick = () => { openMenu(false); $('btnSample').click(); };
+  $('miExport').onclick = () => { openMenu(false); $('btnExport').click(); };
+  $('miAbout').onclick = () => {
+    openMenu(false);
+    tapAbout();
+    modal(`关于 像素工坊 v${VERSION}`, `<div class="help">
+      <p>单文件离线的 AI 像素图整理 + 像素编辑器。MIT 许可，源码：<code>github.com/CHET-LI/pixel-workshop</code>。</p>
+      <p>菜单里的「召唤师原型」是另一个项目 <code>summoner-proto</code> 的队伍立绘，顺手放进来当示例。</p></div>`,
+      [{ label: '知道了', cls: 'accent' }]);
+  };
+
+  // 关于里连点三下 → 菜单底部冒出彩蛋项
+  function tapAbout() {
+    const now = Date.now();
+    eggTaps.n = (now - (eggTaps.t || 0) < 900) ? (eggTaps.n || 0) + 1 : 1;
+    eggTaps.t = now;
+    if (eggTaps.n >= 3) { $('miEgg').hidden = false; eggTaps.n = 0; }
+  }
+  $('miEgg').onclick = () => { openMenu(false); openProto(true); };
+
+  // ---------------- 立绘面板
+  function build() {
+    if (built || !P) return;
+    const row = $('protoRow');
+    P.order.forEach((who) => {
+      const card = document.createElement('div');
+      card.className = 'proto-card';
+      card.dataset.who = who;
+      const img = document.createElement('img');
+      img.width = 96; img.height = Math.round(96 * 134 / 127);
+      img.src = P.data[who][P.exps[who][0]];
+      img.alt = P.names[who];
+      const nm = document.createElement('div'); nm.className = 'pc-name'; nm.textContent = P.names[who];
+      const ex = document.createElement('div'); ex.className = 'pc-exp'; ex.textContent = P.exps[who][0];
+      card.append(img, nm, ex);
+      card.onclick = () => {
+        if (who === 'ranger') {
+          eggTaps[who] = (eggTaps[who] || 0) + 1;
+          if (eggTaps[who] >= 3 && !eggDone && P.egg) { showEgg(img, ex); return; }
+        }
+        expIdx[who] = ((expIdx[who] ?? 0) + 1) % P.exps[who].length;
+        const e = P.exps[who][expIdx[who]];
+        img.src = P.data[who][e];
+        ex.textContent = e;
+        $('protoFoot').classList.remove('flash');
+        $('protoFoot').textContent = `${P.names[who]} · ${e}`;
+      };
+      row.appendChild(card);
+    });
+    built = true;
+  }
+  function showEgg(img, ex) {
+    eggDone = true;
+    img.src = P.egg;
+    ex.textContent = 'alert';
+    const f = $('protoFoot');
+    f.textContent = '她被吓到了';
+    f.classList.add('flash');
+  }
+  function openProto(instantEgg) {
+    if (!P) return;
+    build();
+    mask.hidden = false;
+    if (instantEgg && !eggDone) {
+      const card = $('protoRow').querySelector('[data-who="ranger"]');
+      showEgg(card.querySelector('img'), card.querySelector('.pc-exp'));
+    }
+  }
+  const closeProto = () => { mask.hidden = true; };
+  $('miProto').onclick = () => { openMenu(false); openProto(false); };
+  $('protoClose').onclick = closeProto;
+  mask.addEventListener('click', (e) => { if (e.target === mask) closeProto(); });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !mask.hidden) { closeProto(); e.stopPropagation(); }
+  }, true);
+})();

@@ -11,3 +11,8 @@ __pycache__/
 # logs & local junk
 *.log
 _backup_v1.*
+
+# 本地备份
+_backup_20261106/
+*.bak
+*.bak-*

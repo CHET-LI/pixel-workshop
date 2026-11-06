@@ -19,6 +19,16 @@
   <button id="btnSample">载入示例</button>
   <button id="btnExport">导出…</button>
   <button id="btnHelp">帮助</button>
+  <div class="menu-wrap">
+    <button id="btnMenu" title="更多">☰ 菜单</button>
+    <div id="menuPop" class="menu-pop" hidden>
+      <button id="miSample">载入示例（AI 狐狸）</button>
+      <button id="miProto">召唤师原型 · 队伍立绘</button>
+      <button id="miExport">导出当前结果</button>
+      <button id="miAbout">关于</button>
+      <button id="miEgg" class="egg-item" hidden>▸ 召唤师原型（彩蛋）</button>
+    </div>
+  </div>
   <input type="file" id="fileOpen" accept="image/*,.json,application/json" hidden>
 </header>
 
@@ -252,6 +262,19 @@
 <div class="toast" id="toast"></div>
 <script>{{CORE}}</script>
 <script>window.SAMPLE_IMAGE = "{{SAMPLE}}";</script>
+<script>window.SUMMONER_PORTRAITS = {{PORTRAITS}};</script>
+
+<div id="protoPanel" class="proto-mask" hidden>
+  <div class="proto-box">
+    <div class="proto-head">
+      <span>召唤师原型 · 队伍立绘</span>
+      <span class="proto-tag">summoner-proto · 2026</span>
+      <button id="protoClose" title="关闭">✕</button>
+    </div>
+    <div class="proto-row" id="protoRow"></div>
+    <div class="proto-foot" id="protoFoot">点击立绘切换表情 · Esc 关闭</div>
+  </div>
+</div>
 <script>{{APP}}</script>
 </body>
 </html>
